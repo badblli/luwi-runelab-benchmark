@@ -47,15 +47,34 @@ repoda tutulmaz.
 
 ## RuneLab'a verilecek bilgiler
 
-Public repo tek basina yeterli degildir. RuneLab'a ayri ve guvenli kanaldan
-sunlar verilmeli:
+Public repo benchmark kodu ve test company referansini icerir; panel icin
+tester'larin ayni LAN/VPN agina erisimi olmalidir. Panel backend'i su an local
+test DB'ye bagli olarak calisir.
+
+Panel erisimi:
+
+- Dashboard: `http://10.212.134.200:8081/`
+- Alternatif LAN adresi: `http://192.168.10.114:8081/`
+- Swagger/API: `http://10.212.134.200:8081/docs`
+- Panel kullanici adi: `runelab`
+- Panel sifresi: Public repo'ya yazilmaz; RuneLab'a ayri guvenli kanaldan verilir.
+
+RuneLab'a ayri ve guvenli kanaldan sunulmasi gerekenler:
 
 - Bu repo linki
-- Test DB URI'si (`TEST_DB_URI`); production URI'si verilmemeli
+- Panel sifresi
+- Gerekirse test DB URI'si (`TEST_DB_URI`); production URI'si verilmemeli
+
+Test company ve API bilgileri:
+
 - Test DB adi: `test`
 - Benchmark company ID: `b7e3c0f4-9d8a-4e91-a4f3-7c2d8e6b1a55`
-- Calisan backend API base URL'si
-- Gerekliyse sadece test API key'i
+- Backend API base URL: `http://10.212.134.200:8081`
+- Alternatif backend API base URL: `http://192.168.10.114:8081`
+
+RuneLab'in dogrudan MongoDB'ye baglanmasi gerekmez; panel ve API testleri
+backend uzerinden yapilmalidir. API key, OpenAI Project bilgisi ve production
+URI'si bu public repoya konulmaz.
 
 Chat testleri icin company ID header olarak gonderilir:
 
