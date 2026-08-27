@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "export:dry-run": "node scripts/export-prod-benchmark.mjs --config config.json --dry-run",
-    "export": "node scripts/export-prod-benchmark.mjs --config config.json --write"
+    "export": "node scripts/export-prod-benchmark.mjs --config config.json --write",
+    "clone:dry-run": "node scripts/clone-all-to-test-company.mjs --dry-run",
+    "clone": "node scripts/clone-all-to-test-company.mjs --apply"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

@@ -29,6 +29,22 @@ hazirlamak icindir.
 
 4. Dry-run raporu incelendikten sonra anonimlestirilmis export icin `--write` kullanin.
 
+Tum test company'lerindeki bilgi, dynamic ve conversation orneklerini tek bir
+evaluation paketi olarak almak icin `config.all.json` kullanilabilir. Her kayit
+`source_company_id` ve `source_company_name` ile etiketlenir; company'ler arasi
+beklenen cevaplar karistirilmaz.
+
+Test DB icinde RuneLab'in baglanacagi tek company clone'unu olusturmak icin:
+
+`node scripts/clone-all-to-test-company.mjs --dry-run`
+
+Dry-run kontrolunden sonra:
+
+`node scripts/clone-all-to-test-company.mjs --apply`
+
+Kaynak `PROD_DB_URI` read-only okunur, hedef `TEST_DB_URI` yazilir. URI'ler bu
+repoda tutulmaz.
+
 Public repo kullaniminda `npm install` sonrasi `PROD_DB_URI` sadece calisma ortaminda
 tanimli olmali; `.env`, `config.json` ve uretilmis production ciktilari repoya
 gonderilmemelidir.
