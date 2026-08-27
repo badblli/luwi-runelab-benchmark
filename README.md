@@ -115,6 +115,7 @@ gonderilmemelidir.
 - `dynamic-agent-data.jsonl`: dynamic agent schema, form state, confirmation ve webhook durumlari
 - `tool-catalog.json`: V1/V3 tool katalogu ve beklenen kullanim amaclari
 - `eval/benchmark.jsonl`: insan tarafindan kontrol edilmesi gereken golden set
+- `eval/example-qa.jsonl`: RuneLab'a gonderilebilecek sentetik soru-cevap ornekleri ve assertion'lar
 - `eval/adversarial.jsonl`: injection, kapsam disi ve escalation vakalari
 - `eval/dynamic-agent-cases.jsonl`: dynamic agent schema/confirmation/webhook test sablonlari
 - `eval/tool-cases.jsonl`: tool secimi icin sentetik test sablonlari
