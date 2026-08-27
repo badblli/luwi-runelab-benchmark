@@ -6,6 +6,6 @@ agents-and-routing.jsonl
 eval/*.jsonl
 !eval/adversarial.jsonl
 !eval/tool-cases.jsonl
-!eval/dynamic-agent-cases.jsonl
+eval/dynamic-agent-cases.jsonl
 reports/*.json
 *.log
