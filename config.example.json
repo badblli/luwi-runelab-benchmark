@@ -1,0 +1,10 @@
+{
+  "companyId": "PUT_PRODUCTION_COMPANY_ID_HERE",
+  "companyName": "PUT_COMPANY_NAME_HERE",
+  "sourceEnv": "production",
+  "conversationLimit": 500,
+  "minHistoryTurns": 1,
+  "holdoutRatio": 0.2,
+  "includeAssistantAnswers": true,
+  "writeOutput": false
+}
