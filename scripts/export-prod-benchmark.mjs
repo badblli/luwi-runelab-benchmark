@@ -27,7 +27,8 @@ const configPath = path.resolve(arg("config", path.join(workspace, "config.json"
 const config = JSON.parse(await fs.readFile(configPath, "utf8"));
 const write = process.argv.includes("--write") || config.writeOutput === true;
 const companyId = String(config.companyId || "").trim();
-if (!companyId) throw new Error("config.companyId is required");
+const allCompanies = config.allCompanies === true || companyId.toUpperCase() === "ALL";
+if (!companyId && !allCompanies) throw new Error("config.companyId or config.allCompanies is required");
 if (write && !process.argv.includes("--write")) {
   throw new Error("Writing requires an explicit --write flag");
 }
@@ -42,28 +43,30 @@ const connection = await mongoose.createConnection(process.env.PROD_DB_URI, {
   readPreference: "secondaryPreferred",
 }).asPromise();
 const db = connection.db;
+const companyFilter = allCompanies ? {} : { globalcompanyid: companyId };
 
-const [company, agents, conversations, dynamicRecords] = await Promise.all([
-  db.collection("companies").findOne(
-    { globalcompanyid: companyId },
+const [companies, agents, conversations, dynamicRecords] = await Promise.all([
+  db.collection("companies").find(
+    companyFilter,
     { projection: { _id: 0, globalcompanyid: 1, globalcompanyname: 1, companyInstructions: 1, location: 1, address: 1, chatV3Settings: 1 } },
-  ),
-  db.collection("ai_agents").find({ globalcompanyid: companyId, active: true }).project({
+  ).sort({ globalcompanyname: 1 }).toArray(),
+  db.collection("ai_agents").find({ ...companyFilter, active: true }).project({
     _id: 1, aiAgentName: 1, aiAgentType: 1, aiAgentIntent: 1, aiAgentRoutingRule: 1,
     aiAgentKeywords: 1, aiAgentCategory: 1, outputFormat: 1, outputSchema: 1,
     isServiceAgent: 1, messageDirection: 1, files: 1, urlList: 1,
   }).sort({ wizardOrder: 1, aiAgentName: 1 }).toArray(),
-  db.collection("conversations").find({ globalcompanyid: companyId }, {
-    projection: { _id: 1, history: 1, timestamp: 1, provider: 1, activeCategory: 1 },
+  db.collection("conversations").find(companyFilter, {
+    projection: { _id: 1, globalcompanyid: 1, history: 1, timestamp: 1, provider: 1, activeCategory: 1 },
   }).sort({ timestamp: -1 }).limit(Number(config.conversationLimit || 500)).toArray(),
-  db.collection("dynamic_agent_datas").find({ globalcompanyid: companyId }, {
+  db.collection("dynamic_agent_datas").find(companyFilter, {
     projection: {
-      _id: 1, conversationID: 1, aiAgentId: 1, schemaName: 1, data: 1,
+      _id: 1, globalcompanyid: 1, conversationID: 1, aiAgentId: 1, schemaName: 1, data: 1,
       step: 1, confirmationRequired: 1, status: 1, locationID: 1,
       locationDetailID: 1, webhookStatus: 1, createdAt: 1, updatedAt: 1,
     },
   }).sort({ createdAt: -1 }).limit(Number(config.dynamicRecordLimit || 2000)).toArray(),
 ]);
+const companyById = new Map(companies.map((item) => [String(item.globalcompanyid), item]));
 
 function mask(value) {
   return String(value ?? "")
@@ -85,7 +88,7 @@ function maskDeep(value) {
 function id(value) { return value == null ? null : String(value); }
 const dynamicByConversation = new Map();
 for (const record of dynamicRecords) {
-  const key = id(record.conversationID);
+  const key = `${record.globalcompanyid}:${id(record.conversationID)}`;
   if (!key) continue;
   const sanitized = {
     record_id: id(record._id),
@@ -163,7 +166,9 @@ const rows = conversations.flatMap((conversation) => {
     observed_intent: turn.category,
     observed_agent_id: turn.agentId,
     observed_answered: turn.isAnswered,
-    dynamic_records: dynamicByConversation.get(id(conversation._id)) || [],
+    source_company_id: conversation.globalcompanyid,
+    source_company_name: companyById.get(String(conversation.globalcompanyid))?.globalcompanyname || null,
+    dynamic_records: dynamicByConversation.get(`${conversation.globalcompanyid}:${id(conversation._id)}`) || [],
     expected_intent: null,
     expected_agent: null,
     expected_answer: null,
@@ -176,8 +181,10 @@ const rows = conversations.flatMap((conversation) => {
 const dynamicCaseTemplates = agents
   .filter((agent) => agent.outputFormat === "json" && agent.outputSchema)
   .map((agent) => ({
-    case_id: `dynamic_template_${id(agent._id)}`,
+    case_id: `dynamic_template_${agent.globalcompanyid}_${id(agent._id)}`,
     source: "synthetic_dynamic_template",
+    source_company_id: agent.globalcompanyid,
+    source_company_name: companyById.get(String(agent.globalcompanyid))?.globalcompanyname || null,
     flow_targets: ["v3"],
     user_message: `${agent.aiAgentName} akışını başlat ve gerekli bilgileri sırayla topla.`,
     expected_intent: agent.aiAgentIntent || null,
@@ -208,8 +215,9 @@ const toolCaseTemplates = [
 }));
 
 const summary = {
-  companyId,
-  companyName: company?.globalcompanyname || null,
+  companyId: allCompanies ? "ALL" : companyId,
+  companyName: allCompanies ? "All companies" : companyById.get(companyId)?.globalcompanyname || null,
+  companiesScanned: companies.length,
   dryRun: !write,
   productionReadOnly: true,
   activeAgents: agents.length,
@@ -224,15 +232,17 @@ const summary = {
 
 console.log(JSON.stringify(summary, null, 2));
 if (write) {
-  await fs.writeFile(path.join(root, "company-profile.json"), JSON.stringify({ company, companyId }, null, 2));
+  await fs.writeFile(path.join(root, "company-profile.json"), JSON.stringify({ companies, companyId: allCompanies ? "ALL" : companyId }, null, 2));
   await fs.writeFile(path.join(root, "tool-catalog.json"), JSON.stringify({
-    companyId,
-    inactiveToolIds: company?.inActiveTools || "",
+    companyId: allCompanies ? "ALL" : companyId,
+    inactiveToolIdsByCompany: Object.fromEntries(companies.map((item) => [item.globalcompanyid, item.inActiveTools || ""])),
     tools: toolCatalog,
     note: "Tool execution requires mocked responses for offline benchmark runs; do not call live external tools from benchmark tests.",
   }, null, 2));
   await fs.writeFile(path.join(root, "dynamic-agent-data.jsonl"), dynamicRecords.map((record) => JSON.stringify({
     record_id: id(record._id),
+    source_company_id: record.globalcompanyid,
+    source_company_name: companyById.get(String(record.globalcompanyid))?.globalcompanyname || null,
     conversation_id: id(record.conversationID),
     ai_agent_id: id(record.aiAgentId),
     schema_name: record.schemaName || null,
@@ -248,6 +258,8 @@ if (write) {
   await fs.writeFile(path.join(root, "eval", "tool-cases.jsonl"), toolCaseTemplates.map(JSON.stringify).join("\n") + "\n");
   await fs.writeFile(path.join(root, "agents-and-routing.jsonl"), agents.map((agent) => JSON.stringify({
     agent_id: id(agent._id),
+    source_company_id: agent.globalcompanyid,
+    source_company_name: companyById.get(String(agent.globalcompanyid))?.globalcompanyname || null,
     name: agent.aiAgentName,
     type: agent.aiAgentType,
     intent: agent.aiAgentIntent || null,
