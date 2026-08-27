@@ -45,6 +45,46 @@ Dry-run kontrolunden sonra:
 Kaynak `PROD_DB_URI` read-only okunur, hedef `TEST_DB_URI` yazilir. URI'ler bu
 repoda tutulmaz.
 
+## RuneLab'a verilecek bilgiler
+
+Public repo tek basina yeterli degildir. RuneLab'a ayri ve guvenli kanaldan
+sunlar verilmeli:
+
+- Bu repo linki
+- Test DB URI'si (`TEST_DB_URI`); production URI'si verilmemeli
+- Test DB adi: `test`
+- Benchmark company ID: `b7e3c0f4-9d8a-4e91-a4f3-7c2d8e6b1a55`
+- Calisan backend API base URL'si
+- Gerekliyse sadece test API key'i
+
+Chat testleri icin company ID header olarak gonderilir:
+
+```text
+globalcompanyid: b7e3c0f4-9d8a-4e91-a4f3-7c2d8e6b1a55
+```
+
+V1 endpoint: `POST /api/chat`
+
+V3 endpoint: `POST /api/chatv3` veya dogrudan mount edilmis `POST /chatv3`
+
+Ornek body:
+
+```json
+{
+  "message": "Odama havlu gönderebilir misiniz?",
+  "customerInfo": {
+    "CustomerID": "eval-customer-001",
+    "CustomerName": "Evaluation Guest",
+    "RoomNumber": "101",
+    "Language": "TR"
+  }
+}
+```
+
+RuneLab once `benchmark.jsonl` case'lerini V1 ve V3'te calistirmali; routing,
+cevap, dynamic state, confirmation, webhook ve tool sonucunu kaydetmeli.
+`hidden-test.jsonl` RuneLab'a verilmemeli.
+
 Public repo kullaniminda `npm install` sonrasi `PROD_DB_URI` sadece calisma ortaminda
 tanimli olmali; `.env`, `config.json` ve uretilmis production ciktilari repoya
 gonderilmemelidir.
