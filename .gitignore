@@ -1,7 +1,11 @@
 config.json
 company-profile.json
+tool-catalog.json
+dynamic-agent-data.jsonl
 agents-and-routing.jsonl
 eval/*.jsonl
 !eval/adversarial.jsonl
+!eval/tool-cases.jsonl
+!eval/dynamic-agent-cases.jsonl
 reports/*.json
 *.log

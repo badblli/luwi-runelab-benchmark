@@ -37,7 +37,11 @@ gonderilmemelidir.
 
 - `company-profile.json`: company ve agent metadata'si
 - `agents-and-routing.jsonl`: agent/intent/routing bilgisi
+- `dynamic-agent-data.jsonl`: dynamic agent schema, form state, confirmation ve webhook durumlari
+- `tool-catalog.json`: V1/V3 tool katalogu ve beklenen kullanim amaclari
 - `eval/benchmark.jsonl`: insan tarafindan kontrol edilmesi gereken golden set
 - `eval/adversarial.jsonl`: injection, kapsam disi ve escalation vakalari
+- `eval/dynamic-agent-cases.jsonl`: dynamic agent schema/confirmation/webhook test sablonlari
+- `eval/tool-cases.jsonl`: tool secimi icin sentetik test sablonlari
 - `eval/hidden-test.jsonl`: RuneLab'a gonderilmeyecek holdout set
 - `reports/export-summary.json`: sayimlar ve PII maskeleme ozeti
