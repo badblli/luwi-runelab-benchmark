@@ -70,7 +70,8 @@ function mask(value) {
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[EMAIL]")
     .replace(/(?:\+?90|0)?5\d{9}/g, "[PHONE]")
     .replace(/\b(?:TR)?[0-9]{10,16}\b/g, "[IDENTIFIER]")
-    .replace(/\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b/g, "[DATE]");
+    .replace(/\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b/g, "[DATE]")
+    .replace(/\b\d{4}-\d{2}-\d{2}\b/g, "[DATE]");
 }
 
 function maskDeep(value) {
@@ -116,6 +117,9 @@ const toolCatalog = [
 ];
 
 function schemaFields(schema) {
+  if (typeof schema === "string") {
+    try { return schemaFields(JSON.parse(schema)); } catch { return []; }
+  }
   if (!schema || typeof schema !== "object") return [];
   if (Array.isArray(schema.properties)) {
     return schema.properties.map((item) => ({
