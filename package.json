@@ -1,0 +1,13 @@
+{
+  "name": "luwi-runelab-benchmark",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "export:dry-run": "node scripts/export-prod-benchmark.mjs --config config.json --dry-run",
+    "export": "node scripts/export-prod-benchmark.mjs --config config.json --write"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.7.0"
+  }
+}
