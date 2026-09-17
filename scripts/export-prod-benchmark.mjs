@@ -4,24 +4,12 @@ import process from "node:process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-const repo = "[LOCAL_PATH]";
 const workspace = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-let require;
-try {
-  require = createRequire(path.join(workspace, "package.json"));
-  require("dotenv");
-} catch {
-  require = createRequire(path.join(repo, "package.json"));
-}
+const require = createRequire(path.join(workspace, "package.json"));
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
-dotenv.config({ path: path.join(repo, ".env.production") });
-dotenv.config({ path: path.join(repo, ".env.production.local"), override: true });
-
-function arg(name, fallback = null) {
-  const i = process.argv.indexOf(`--${name}`);
-  return i >= 0 ? process.argv[i + 1] || fallback : fallback;
-}
+dotenv.config({ path: path.join(workspace, ".env") });
+dotenv.config({ path: path.join(workspace, ".env.local"), override: true });
 
 const configPath = path.resolve(arg("config", path.join(workspace, "config.json")));
 const config = JSON.parse(await fs.readFile(configPath, "utf8"));

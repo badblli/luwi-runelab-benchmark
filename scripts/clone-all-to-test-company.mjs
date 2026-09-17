@@ -5,18 +5,11 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const workspace = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const repo = "[LOCAL_PATH]";
-let require;
-try {
-  require = createRequire(path.join(workspace, "package.json"));
-  require("mongoose");
-} catch {
-  require = createRequire(path.join(repo, "package.json"));
-}
+const require = createRequire(path.join(workspace, "package.json"));
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-dotenv.config({ path: path.join(repo, ".env.production") });
-dotenv.config({ path: path.join(repo, ".env.production.local"), override: true });
+dotenv.config({ path: path.join(workspace, ".env") });
+dotenv.config({ path: path.join(workspace, ".env.local"), override: true });
 
 const config = JSON.parse(await (await import("node:fs/promises")).readFile(path.join(workspace, "config.clone.json"), "utf8"));
 const apply = process.argv.includes("--apply");
